@@ -19,7 +19,8 @@ python -m engine.render series/the-317-knock/ep01/episode.py out/preview.png --p
 Output: 1080x1920, 30 fps, H.264/AAC.
 
 ## Style rules
-- Second person ("Imagine you…"), short sentences, a new caption every ~1 s.
+- EVERY part opens with an "Imagine…" hook line (part 1: "Imagine you…", later parts: "Imagine you just…" recap of the winning choice).
+- Second person throughout, short sentences, a new caption every ~1 s.
 - Captions: Inter Black, uppercase, 2–3 words, key words in yellow.
 - HUD: ● PART n/7 + location tag + live clock counting toward the event time.
 - 45–75 s per part; ends on an A/B choice card + "Comment A or B".
