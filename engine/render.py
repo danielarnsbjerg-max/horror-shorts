@@ -286,7 +286,7 @@ def render_frame(fi):
 def render_chunk(args):
     i0, i1, path = args
     ff = subprocess.Popen(["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                           "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", path], stdin=subprocess.PIPE)
+                           "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p", path], stdin=subprocess.PIPE)
     for fi in range(i0, i1): ff.stdin.write(render_frame(fi))
     ff.stdin.close(); ff.wait()
     return path
