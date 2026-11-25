@@ -23,5 +23,6 @@ Output: 1080x1920, 30 fps, H.264/AAC.
 - Second person throughout, short sentences, a new caption every ~1 s.
 - Captions: Inter Black, uppercase, 2–3 words, key words in yellow.
 - HUD: ● PART n/7 + location tag + live clock counting toward the event time.
-- 45–75 s per part; ends on an A/B choice card + "Comment A or B".
+- 45–75 s per part; ends on a keyword choice card: question on top ("THE CLOSET, OR THE BLANKET?"), yellow + red keyword pills, then "FOLLOW FOR PART n+1 @handle". Viewers comment the keyword.
+- HUD right side: yellow label + countdown (before the event "NEXT KNOCK IN", after it a stakes timer like "IT LEAVES IN").
 - Always label as AI-generated when posting.

@@ -48,8 +48,11 @@ EPISODE = {
          "char": {"x": 860, "feet": 2350, "s": 2.4, "view": "back", "turn": (0.0, 1.0), "expr": "terrified", "tremble": 0.4}},
         {"scene": "bed", "vo": "11", "text": "and the *blanket*... starts to *breathe*.", "heartbeat": True, "pulse": 0.025, "pad": 1.2,
          "cam": {"zoom": (1.15, 1.45), "x": 0.5, "y": 0.6}},
-        {"scene": "bed", "vo": "12", "text": "What do you do?", "choice": True, "hold": 2.5},
+        {"scene": "bedroom", "vo": "12", "text": "So what do you do?", "choice": True, "hold": 2.8,
+         "cam": {"zoom": (1.0, 1.08), "x": 0.5, "y": 0.55}},
     ],
-    "choice": {"a": "OPEN THE\nCLOSET", "b": "PULL OFF\nTHE BLANKET", "top": "closet", "bottom": "bed"},
+    "choice": {"question": "THE CLOSET,\nOR THE BLANKET?", "a": "CLOSET", "b": "BLANKET", "a_at": 0.45, "b_at": 0.8},
+    "countdown": {"before": "NEXT KNOCK IN", "after": "IT LEAVES IN", "after_secs": 17 * 60},
+    "handle": "@midnightstories2255",
     "tail": 0.6,
 }

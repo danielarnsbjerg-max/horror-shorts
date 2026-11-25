@@ -125,6 +125,9 @@ class Look:
         self.f_clock = font(FONT_BLACK, 92)
         self.f_choice = font(FONT_BLACK, 70)
         self.f_ab = font(FONT_BLACK, 150)
+        self.f_q = font(FONT_BLACK, 104)
+        self.f_pill = font(FONT_BLACK, 78)
+        self.f_handle = font(FONT_XB, 60)
 
     def band(self, scene, cam, u, shake=(0, 0)):
         im = self.img[scene]
@@ -199,29 +202,54 @@ class Look:
         d.text((x + 36, y), part, font=self.f_hud, fill=(255, 255, 255), stroke_width=3, stroke_fill=(0, 0, 0))
         x2 = x + 36 + self.f_hud.getlength(part) + 22
         d.text((x2, y), spec["tag"], font=self.f_hud, fill=YELLOW, stroke_width=3, stroke_fill=(0, 0, 0))
-        cx = 40; cy = y + 52
+        cy = y + 52
         col = RED if (hot and key[2]) else (255, 255, 255)
-        adv = self.f_clock.getlength("0")
-        for ch in clock:  # fixed advance so digits don't jitter
-            wch = adv if ch.isdigit() else self.f_clock.getlength(":")
-            d.text((cx + (wch - self.f_clock.getlength(ch)) / 2, cy), ch, font=self.f_clock, fill=col, stroke_width=4, stroke_fill=(0, 0, 0))
-            cx += wch + 2
+        self._digits(d, 40, cy, clock, col)
+        # right-hand countdown: before the event "NEXT KNOCK IN 0:18", after it "IT LEAVES IN 16:59"
+        cd = spec.get("countdown")
+        if cd:
+            if t < ep.clock_hit: label, rem = cd["before"], max(0, math.ceil(ep.clock_hit - t))
+            else: label, rem = cd["after"], max(0, cd["after_secs"] - int(t - ep.clock_hit))
+            txt = f"{rem // 60}:{rem % 60:02d}"
+            d.text((W - 44, y), label, font=self.f_hud, fill=YELLOW, anchor="ra", stroke_width=3, stroke_fill=(0, 0, 0))
+            wtxt = sum(self.f_clock.getlength("0") + 2 if c.isdigit() else self.f_clock.getlength(":") + 2 for c in txt)
+            self._digits(d, W - 44 - wtxt, cy, txt, (255, 255, 255))
         self.hud_cache[key] = im
         return im
 
-    def choice_card(self, spec, a_in, b_in, cta_in):
+    def _digits(self, d, cx, cy, txt, col):
+        adv = self.f_clock.getlength("0")
+        for ch in txt:  # fixed advance so digits don't jitter
+            wch = adv if ch.isdigit() else self.f_clock.getlength(":")
+            d.text((cx + (wch - self.f_clock.getlength(ch)) / 2, cy), ch, font=self.f_clock, fill=col, stroke_width=4, stroke_fill=(0, 0, 0))
+            cx += wch + 2
+
+    def choice_card(self, spec, lt, d_vo):
+        """End card: question on top, two keyword pills (yellow / red), then FOLLOW FOR PART n+1 + handle."""
         c = spec["choice"]
         im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-        d.rectangle([0, H // 2 - 5, W, H // 2 + 5], fill=(*RED, 255))
-        for k, (letter, txt, yc, amt) in enumerate((("A", c["a"], H * 0.30, a_in), ("B", c["b"], H * 0.70, b_in))):
-            if amt <= 0: continue
-            al = int(255 * min(1, amt))
-            d.text((W / 2, yc - 60), letter, font=self.f_ab, fill=(*YELLOW, al), anchor="mm", stroke_width=8, stroke_fill=(0, 0, 0, al))
-            d.multiline_text((W / 2, yc + 80), txt, font=self.f_choice, fill=(255, 255, 255, al), anchor="mm", align="center", stroke_width=6, stroke_fill=(0, 0, 0, al), spacing=8)
-        if cta_in > 0:
-            al = int(255 * min(1, cta_in))
-            d.rounded_rectangle([W / 2 - 330, H - 330, W / 2 + 330, H - 230], 50, fill=(*RED, al))
-            d.text((W / 2, H - 280), "COMMENT  A  OR  B", font=self.f_hud, fill=(255, 255, 255, al), anchor="mm")
+        def alpha(t0): return max(0.0, min(1.0, (lt - t0) / 0.2))
+        def pop(t0):  # small overshoot bounce
+            x = max(0.0, min(1.0, (lt - t0) / 0.25)); return 0.6 + 0.4 * x + 0.12 * math.sin(math.pi * x)
+        a = alpha(0.15)
+        if a > 0:
+            al = int(255 * a)
+            d.rectangle([0, 0, W, 820], fill=(0, 0, 0, int(150 * a)))
+            d.multiline_text((W / 2, 505), c["question"], font=self.f_q, fill=(255, 255, 255, al), anchor="mm", align="center",
+                             stroke_width=7, stroke_fill=(0, 0, 0, al), spacing=14)
+        for word, bg, fg, cxp, t0 in ((c["a"], YELLOW, (0, 0, 0), 0.27, d_vo * c.get("a_at", 0.4)),
+                                      (c["b"], RED, (255, 255, 255), 0.73, d_vo * c.get("b_at", 0.8))):
+            if lt < t0: continue
+            s = pop(t0); f = self.f_pill
+            tw = f.getlength(word); pw, ph = (tw + 90) * s, 130 * s
+            cx, cy = W * cxp, 735
+            d.rounded_rectangle([cx - pw / 2, cy - ph / 2, cx + pw / 2, cy + ph / 2], int(24 * s), fill=(*bg, 255))
+            if s > 0.9: d.text((cx, cy), word, font=f, fill=fg, anchor="mm")
+        t_f = d_vo + 0.3
+        if lt >= t_f:
+            al = int(255 * alpha(t_f))
+            d.text((W / 2, 1380), f"FOLLOW FOR PART {spec['part'] + 1}", font=self.f_choice, fill=(*YELLOW, al), anchor="mm", stroke_width=6, stroke_fill=(0, 0, 0, al))
+            d.text((W / 2, 1470), spec.get("handle", ""), font=self.f_handle, fill=(255, 255, 255, al), anchor="mm", stroke_width=5, stroke_fill=(0, 0, 0, al))
         return im
 
 # ---------------------------------------------------------------- frame
@@ -237,14 +265,7 @@ def render_frame(fi):
     k = knock_amt(t)
     rng = np.random.default_rng(fi)
     shake = (rng.uniform(-14, 14) * k, rng.uniform(-14, 14) * k)
-    if b.get("choice"):
-        c = ep.spec["choice"]; frame = Image.new("RGB", (W, H), (0, 0, 0))
-        for key, y0 in ((c["top"], 0), (c["bottom"], H // 2)):
-            sc2 = ep.scenes[key]
-            bd = lk.band(key, sc2.get("cam", {}), 0.5).resize((W, int(BAND_H * 0.82)))
-            bd = bd.crop((0, (bd.height - H // 2) // 2, W, (bd.height - H // 2) // 2 + H // 2))
-            frame.paste(Image.eval(bd, lambda v: int(v * 0.55)), (0, y0))
-    elif sc.get("fx") == "peephole":
+    if sc.get("fx") == "peephole":
         frame = lk.fill[scene].copy()
         frame.paste(lk.peephole(scene), (0, 0))
     else:
@@ -269,8 +290,7 @@ def render_frame(fi):
     if t > ep.dur - 0.5: a *= max(0, (ep.dur - t) / 0.5)
     frame = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA")
     if b.get("choice"):
-        lt = t - b["start"]
-        frame.alpha_composite(lk.choice_card(ep.spec, (lt - 1.0) / 0.3, (lt - 3.2) / 0.3, (lt - 5.6) / 0.3))
+        frame.alpha_composite(lk.choice_card(ep.spec, t - b["start"], len(b["clip"]) / SR))
     frame.alpha_composite(lk.hud(t), (0, 140))
     if not b.get("choice"):
         for gi, g in enumerate(ep.groups):
