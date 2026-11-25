@@ -292,7 +292,8 @@ def render_frame(fi):
                        turn=val(ch.get("turn", 1.0), u), arm_raise=val(ch.get("arm", 0.0), u), walk=ch.get("walk", 0))
     a = np.asarray(frame, np.float32)
     light = 1.0
-    if sc.get("flicker"): light *= 0.78 + 0.22 * (rng.random() > 0.07)
+    if sc.get("flicker") or b.get("flicker"): light *= 0.78 + 0.22 * (rng.random() > 0.07)
+    if b.get("flicker") == "hard": light *= 0.25 if rng.random() < 0.18 else 1.0
     light *= 1 - 0.3 * k
     a = a * lk.vign * light + lk.grain[fi % len(lk.grain)]
     # cut dips
@@ -400,6 +401,9 @@ def make_audio(ep, path):
     for b in ep.beats:
         if b.get("heartbeat"):
             for x in np.arange(b["start"], b["start"] + b["dur"], 0.75): add(x, hit(50, 22, 0.55)); add(x + 0.22, hit(45, 22, 0.4))
+        if b.get("sting"):  # jump-scare hit
+            tt = np.arange(int(2.5 * SR)) / SR
+            add(b["start"], (sum(np.sin(2 * np.pi * f * tt) for f in (196, 207.7, 277, 415)) * 0.16 + rng.normal(0, 0.25, len(tt)) * np.exp(-tt * 12)) * np.exp(-tt * 1.6))
         if b.get("choice"):
             tt = np.arange(int(4 * SR)) / SR
             add(b["start"], sum(np.sin(2 * np.pi * f * tt) for f in (233, 246.9, 311, 466)) * 0.1 * np.exp(-tt * 0.9))
