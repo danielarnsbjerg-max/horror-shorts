@@ -18,4 +18,4 @@
 6. Reveal of who is in the bed / closet.
 7. Ending + hint that it moved to another floor.
 
-**Voice:** ElevenLabs "Jack – Deep Dark Horror Narrator" (BVPhWQykET1TSvfGzrUr), model eleven_v4.
+**Voice:** ElevenLabs "Adam – Deep & Confident" (2HkrEEFvhechZ9cksLY8), model eleven_v4. Dry narration, no reverb except whispers.

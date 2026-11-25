@@ -8,7 +8,7 @@ Each series runs 6–7 parts; every part ends with an A/B choice and the next pa
 - `series/<name>/bible.md` – series bible: characters, rules, planned arc
 - `series/<name>/assets/bg/` – background art (low-poly 3D style, generated with ElevenLabs image models)
 - `series/<name>/epNN/episode.py` – beats, captions, character poses
-- `series/<name>/epNN/vo/` – narration clips (ElevenLabs, voice "Jack – Deep Dark Horror Narrator")
+- `series/<name>/epNN/vo/` – narration clips (ElevenLabs, voice "Adam – Deep & Confident")
 
 ## Render
 ```

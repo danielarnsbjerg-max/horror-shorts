@@ -362,7 +362,7 @@ def main():
     open(lst, "w").write("".join(f"file '{x}'\n" for x in parts))
     make_audio(ep, os.path.join(tmp, "a.wav"))
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-i", os.path.join(tmp, "a.wav"),
-                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", out], check=True)
+                    "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=9", "-ar", "48000", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", out], check=True)
     print("done", out)
 
 if __name__ == "__main__":
