@@ -43,7 +43,7 @@ class Episode:
     def __init__(self, spec, base):
         self.spec, self.base = spec, base
         self.scenes = spec["scenes"]
-        self.beats, self.words, self.knocks, self.cuts = [], [], [], []
+        self.beats, self.words, self.knocks, self.rings, self.cuts = [], [], [], [], []
         t, prev = 0.0, None
         for b in spec["beats"]:
             b = dict(b)
@@ -51,6 +51,10 @@ class Episode:
                 b.setdefault("scene", prev["scene"] if prev else None)
                 for k in range(b["knock"]): self.knocks.append(t + 0.25 + k * 0.36)
                 b["start"], b["dur"], b["clip"] = t, 0.5 + b["knock"] * 0.36 + 0.5, None
+            elif "ring" in b:  # phone ringing: n rings of ~1.2 s
+                b.setdefault("scene", prev["scene"] if prev else None)
+                for k in range(b["ring"]): self.rings.append(t + 0.2 + k * 1.3)
+                b["start"], b["dur"], b["clip"] = t, 0.4 + b["ring"] * 1.3, None
             else:
                 clip = load_audio(os.path.join(base, spec["vo_dir"], b["vo"] + ".mp3"))
                 b["clip"] = clip
@@ -208,11 +212,15 @@ class Look:
         # right-hand countdown: before the event "NEXT KNOCK IN 0:18", after it "IT LEAVES IN 16:59"
         cd = spec.get("countdown")
         if cd:
-            if t < ep.clock_hit: label, rem = cd["before"], max(0, math.ceil(ep.clock_hit - t))
-            else: label, rem = cd["after"], max(0, cd["after_secs"] - int(t - ep.clock_hit))
-            txt = f"{rem // 60}:{rem % 60:02d}"
+            if "percent" in cd:  # meter, e.g. OXYGEN 92% dropping by `rate` per second
+                label = cd["label"]; txt = f"{max(0, int(cd['percent'] - cd.get('rate', 0.2) * t))}%"
+            else:
+                if "start" in cd: label, rem = cd["label"], max(0, int(cd["start"] - t))
+                elif t < ep.clock_hit: label, rem = cd["before"], max(0, math.ceil(ep.clock_hit - t))
+                else: label, rem = cd["after"], max(0, cd["after_secs"] - int(t - ep.clock_hit))
+                txt = f"{rem // 3600}:{rem % 3600 // 60:02d}:{rem % 60:02d}" if rem >= 3600 else f"{rem // 60}:{rem % 60:02d}"
             d.text((W - 44, y), label, font=self.f_hud, fill=YELLOW, anchor="ra", stroke_width=3, stroke_fill=(0, 0, 0))
-            wtxt = sum(self.f_clock.getlength("0") + 2 if c.isdigit() else self.f_clock.getlength(":") + 2 for c in txt)
+            wtxt = sum((self.f_clock.getlength("0") if c.isdigit() else self.f_clock.getlength(c)) + 2 for c in txt)
             self._digits(d, W - 44 - wtxt, cy, txt, (255, 255, 255))
         self.hud_cache[key] = im
         return im
@@ -220,7 +228,7 @@ class Look:
     def _digits(self, d, cx, cy, txt, col):
         adv = self.f_clock.getlength("0")
         for ch in txt:  # fixed advance so digits don't jitter
-            wch = adv if ch.isdigit() else self.f_clock.getlength(":")
+            wch = adv if ch.isdigit() else self.f_clock.getlength(ch)
             d.text((cx + (wch - self.f_clock.getlength(ch)) / 2, cy), ch, font=self.f_clock, fill=col, stroke_width=4, stroke_fill=(0, 0, 0))
             cx += wch + 2
 
@@ -235,7 +243,10 @@ class Look:
         if a > 0:
             al = int(255 * a)
             d.rectangle([0, 0, W, 820], fill=(0, 0, 0, int(150 * a)))
-            d.multiline_text((W / 2, 505), c["question"], font=self.f_q, fill=(255, 255, 255, al), anchor="mm", align="center",
+            fq = self.f_q; sz = 104
+            while max(fq.getlength(l) for l in c["question"].split("\n")) > W - 90 and sz > 60:
+                sz -= 4; fq = font(FONT_BLACK, sz)
+            d.multiline_text((W / 2, 505), c["question"], font=fq, fill=(255, 255, 255, al), anchor="mm", align="center",
                              stroke_width=7, stroke_fill=(0, 0, 0, al), spacing=14)
         for word, bg, fg, cxp, t0 in ((c["a"], YELLOW, (0, 0, 0), 0.27, d_vo * c.get("a_at", 0.4)),
                                       (c["b"], RED, (255, 255, 255), 0.73, d_vo * c.get("b_at", 0.8))):
@@ -289,6 +300,10 @@ def render_frame(fi):
         if 0 <= t - c0 < 0.12: a *= (t - c0) / 0.12
     if t > ep.dur - 0.5: a *= max(0, (ep.dur - t) / 0.5)
     frame = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA")
+    card = b.get("card")
+    if card:
+        ring = max([max(0.0, 1 - abs(((t - r) % 1.3) - 0.3) / 0.3) if 0 <= t - r < 1.3 else 0 for r in ep.rings] + [0.0])
+        frame.alpha_composite(draw_card(card, t - b["start"], u, ring))
     if b.get("choice"):
         frame.alpha_composite(lk.choice_card(ep.spec, t - b["start"], len(b["clip"]) / SR))
     frame.alpha_composite(lk.hud(t), (0, 140))
@@ -302,6 +317,54 @@ def render_frame(fi):
                 frame.alpha_composite(cap, (int(W / 2 - cap.width / 2), int(1250 - cap.height / 2)))
                 break
     return frame.convert("RGB").tobytes()
+
+def draw_card(card, lt, u, ring=0.0):
+    """Diegetic overlays: a handwritten rules note, an incoming phone call, or an elevator floor display."""
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    a = max(0.0, min(1.0, lt / 0.25)); al = int(255 * a)
+    if card["type"] == "note":
+        paper = Image.new("RGBA", (860, 900), (238, 230, 205, 255)); pd = ImageDraw.Draw(paper)
+        for y in range(150, 900, 70): pd.line([40, y, 820, y], fill=(170, 190, 215, 255), width=2)
+        pd.line([90, 0, 90, 900], fill=(220, 120, 120, 255), width=3)
+        pd.text((430, 80), card.get("title", "HOUSE RULES"), font=font(FONT_BLACK, 64), fill=(30, 30, 40, 255), anchor="mm")
+        f = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf", 38)
+        shown = card.get("show", len(card["lines"]))
+        shown = int(val(shown, u)) if isinstance(shown, (tuple, list)) else shown
+        y = 120
+        for i, line in enumerate(card["lines"][:shown]):
+            col = (190, 20, 20, 255) if i == card.get("hl") else (35, 35, 60, 255)
+            for wl in _wrap(line, f, 700):
+                pd.text((115, y + 22), wl, font=f, fill=col); y += 70
+        paper = paper.rotate(-3, resample=Image.BICUBIC, expand=True)
+        paper.putalpha(paper.getchannel("A").point(lambda v: int(v * a)))
+        im.alpha_composite(paper, ((W - paper.width) // 2, 470))
+    elif card["type"] == "call":
+        jx = int(math.sin(lt * 90) * 10 * ring)
+        x0, y0 = 250 + jx, 430
+        d.rounded_rectangle([x0, y0, x0 + 580, y0 + 1060], 70, fill=(12, 12, 18, al), outline=(70, 70, 80, al), width=8)
+        d.text((x0 + 290, y0 + 170), card.get("sub", "incoming call"), font=font(FONT_XB, 40), fill=(170, 170, 180, al), anchor="mm")
+        d.text((x0 + 290, y0 + 270), card["name"], font=font(FONT_BLACK, 86), fill=(255, 255, 255, al), anchor="mm")
+        r = 120 + 25 * ring
+        d.ellipse([x0 + 290 - r, y0 + 520 - r, x0 + 290 + r, y0 + 520 + r], outline=(255, 255, 255, int(al * (0.3 + 0.7 * ring))), width=5)
+        d.ellipse([x0 + 200, y0 + 430, x0 + 380, y0 + 610], fill=(40, 40, 52, al))
+        d.text((x0 + 290, y0 + 520), "?", font=font(FONT_BLACK, 110), fill=(200, 200, 210, al), anchor="mm")
+        for cx, col in ((x0 + 140, RED), (x0 + 440, (40, 200, 90))):
+            d.ellipse([cx - 70, y0 + 820, cx + 70, y0 + 960], fill=(*col, al))
+    elif card["type"] == "display":
+        d.rounded_rectangle([290, 640, 790, 960], 30, fill=(8, 6, 6, int(al * 0.92)), outline=(60, 60, 64, al), width=8)
+        flick = 1.0 if (int(lt * 12) % 9) else 0.35
+        txt = card["text"]
+        g = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).text((540, 800), txt, font=font(FONT_BLACK, 190), fill=(255, 40, 30, int(al * flick)), anchor="mm")
+        im.alpha_composite(g.filter(ImageFilter.GaussianBlur(14)))
+        d.text((540, 800), txt, font=font(FONT_BLACK, 190), fill=(255, 70, 50, int(al * flick)), anchor="mm")
+    return im
+
+def _wrap(text, f, width):
+    out, cur = [], ""
+    for w in text.split():
+        if f.getlength((cur + " " + w).strip()) > width: out.append(cur); cur = w
+        else: cur = (cur + " " + w).strip()
+    return out + [cur]
 
 def render_chunk(args):
     i0, i1, path = args
@@ -328,6 +391,9 @@ def make_audio(ep, path):
     first = math.ceil(ep.clock0) - ep.clock0
     for s in np.arange(first, ep.dur, 1.0): add(s, tick * (2.5 if abs(s - ep.clock_hit) < 0.5 else 1))
     for kt in ep.knocks: add(kt, hit())
+    tr = np.arange(int(1.0 * SR)) / SR  # classic two-tone phone ring
+    ring = 0.12 * (np.sin(2 * np.pi * 440 * tr) + np.sin(2 * np.pi * 480 * tr)) * (np.sin(2 * np.pi * 20 * tr) > 0) * np.clip((1 - tr) * 8, 0, 1)
+    for rt in ep.rings: add(rt, ring)
     wl = int(0.45 * SR); w = rng.normal(0, 1, wl) * np.sin(np.linspace(0, np.pi, wl)) ** 2
     w = np.convolve(w, np.ones(30) / 30, "same") * 0.18
     for c in ep.cuts[1:]: add(c - 0.2, w)

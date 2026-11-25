@@ -1,0 +1,40 @@
+"""Babysitter Rules - Part 1/7."""
+BG = "../assets/bg/"
+RULES = ["1. Bedtime is 9 PM. No exceptions.", "2. Never open the basement door.",
+         "3. If the kids call you from the basement, don't go down.", "4. We don't have kids in the basement."]
+EPISODE = {
+    "part": 1, "parts": 7, "tag": "HOUSE RULES",
+    "clock_target": "00:00:00", "vo_dir": "vo",
+    "countdown": {"label": "PARENTS HOME IN", "start": 2 * 3600 + 14 * 60 + 9},
+    "handle": "@midnightstories2255",
+    "scenes": {
+        "kitchen": {"bg": BG + "kitchen.png", "cam": {"zoom": (1.0, 1.12), "x": 0.42}},
+        "living": {"bg": BG + "living.png", "cam": {"zoom": (1.0, 1.12), "x": 0.5}},
+        "kidsroom": {"bg": BG + "kidsroom.png", "cam": {"zoom": (1.0, 1.3), "x": (0.45, 0.6)}},
+        "basement": {"bg": BG + "basement.png", "cam": {"zoom": (1.0, 1.7), "x": 0.47, "y": 0.5}, "flicker": True},
+    },
+    "beats": [
+        {"scene": "kitchen", "vo": "00", "text": "Imagine you're *babysitting* for a family you've never met.",
+         "char": {"x": 640, "feet": 1660, "s": 1.6}},
+        {"scene": "kitchen", "vo": "01", "text": "Before they leave, the mother hands you a list of *rules*.",
+         "card": {"type": "note", "lines": RULES, "show": (1, 4)}},
+        {"scene": "kitchen", "vo": "02", "text": "Rule three. If the kids call you from the *basement*... don't go *down*.",
+         "card": {"type": "note", "lines": RULES, "hl": 2}},
+        {"scene": "kitchen", "vo": "03", "text": "Rule four. We don't have kids in the *basement*.", "pad": 0.6,
+         "card": {"type": "note", "lines": RULES, "hl": 3}},
+        {"scene": "living", "vo": "04", "text": "At *midnight*, both kids are asleep upstairs.",
+         "char": {"x": 600, "feet": 1660, "s": 1.6}},
+        {"scene": "living", "ring": 2, "clock_hit": True, "card": {"type": "call", "name": "BASEMENT"},
+         "char": {"x": 600, "feet": 1660, "s": 1.6, "expr": "scared"}},
+        {"scene": "living", "vo": "05", "text": "Then your phone rings. The caller I.D. says... *basement*.",
+         "card": {"type": "call", "name": "BASEMENT"}},
+        {"scene": "living", "vo": "06", "text": "\"Can you come down here? It's *dark*.\"", "whisper": True, "pad": 0.7,
+         "card": {"type": "call", "name": "BASEMENT", "sub": "call connected"}},
+        {"scene": "kidsroom", "vo": "07", "text": "You run upstairs to check on the kids... and one bed is *empty*.",
+         "char": {"x": 300, "feet": 1720, "s": 1.75, "view": "back", "turn": 0.0, "tremble": 0.4}},
+        {"scene": "basement", "vo": "08", "text": "And from the basement... you hear *giggling*.", "heartbeat": True, "pad": 0.8},
+        {"scene": "basement", "vo": "09", "text": "So what do you do?", "choice": True, "hold": 2.8, "cam": {"zoom": (1.0, 1.1), "x": 0.47}},
+    ],
+    "choice": {"question": "THE BASEMENT,\nOR LOCK THE DOOR?", "a": "BASEMENT", "b": "LOCK IT", "a_at": 0.4, "b_at": 0.85},
+    "tail": 0.6,
+}
