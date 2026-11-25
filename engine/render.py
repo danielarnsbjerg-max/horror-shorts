@@ -317,20 +317,19 @@ def make_audio(ep, path):
         if b.get("choice"):
             tt = np.arange(int(4 * SR)) / SR
             add(b["start"], sum(np.sin(2 * np.pi * f * tt) for f in (233, 246.9, 311, 466)) * 0.1 * np.exp(-tt * 0.9))
+    # narration: clean and dry (no saturation), every line levelled to the same loudness
     vo = np.zeros(n)
     for b in ep.beats:
         if b["clip"] is None: continue
-        c = b["clip"] / (np.abs(b["clip"]).max() + 1e-9) * 0.9
+        c = b["clip"] / (np.sqrt(np.mean(b["clip"] ** 2)) + 1e-9) * 0.16
         if b.get("whisper"):
-            c = reverb(c, 2.4, 0.5, 3) * 0.85; c = c + 0.35 * np.concatenate([np.zeros(int(0.09 * SR)), c])[: len(c)]
-        else:
-            c = reverb(c, 0.9, 0.14)
+            c = reverb(c, 1.6, 0.3, 3)
         i = int((b["start"] + 0.05) * SR); vo[i:i + len(c)] += c[: max(0, n - i)]
     env = np.convolve(np.abs(vo), np.ones(4410) / 4410, "same")
-    out = out * (1 - 0.6 * np.clip(env * 6, 0, 1)) + vo
-    out *= np.clip((ep.dur - t) / 0.8, 0, 1)
-    out = np.tanh(out * 1.3) * 0.85
-    st = np.stack([out, np.roll(out, 240)], 1)
+    bed = out * 0.6 * (1 - 0.65 * np.clip(env * 8, 0, 1))
+    fade = np.clip((ep.dur - t) / 0.8, 0, 1)
+    st = np.stack([bed + vo, np.roll(bed, 240) + vo], 1) * fade[:, None]
+    st *= 0.95 / max(1e-9, np.abs(st).max())  # peak-normalise, never clip
     with wave.open(path, "wb") as wv:
         wv.setnchannels(2); wv.setsampwidth(2); wv.setframerate(SR); wv.writeframes((st * 32767).astype(np.int16).tobytes())
 
