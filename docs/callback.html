@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connected – Midnight Stories</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon.png"><link rel="stylesheet" href="style.css">
+</head>
+<body><main>
+<header><img src="icon.png" alt="Midnight Stories logo"><h1>TikTok sign-in</h1></header>
+<p id="msg">Reading the response from TikTok…</p>
+<p id="code-wrap" hidden>Authorisation code (valid for a few minutes):<br><code id="code"></code></p>
+<p class="muted">This page belongs to Midnight Stories Publisher, a private tool used only by the Midnight Stories channel owner. Nothing is stored on this page.</p>
+<script>
+  const q = new URLSearchParams(location.search);
+  const msg = document.getElementById('msg');
+  if (q.get('error')) {
+    msg.textContent = 'TikTok returned an error: ' + q.get('error') + (q.get('error_description') ? ' – ' + q.get('error_description') : '');
+  } else if (q.get('code')) {
+    msg.textContent = 'Signed in with TikTok. Copy the code below and hand it to the publishing tool.';
+    document.getElementById('code').textContent = q.get('code');
+    document.getElementById('code-wrap').hidden = false;
+  } else {
+    msg.textContent = 'No sign-in response found. Start the sign-in from the publishing tool.';
+  }
+</script>
+</main></body>
+</html>
