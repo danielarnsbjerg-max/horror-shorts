@@ -51,6 +51,8 @@ class Episode:
                 b.setdefault("scene", prev["scene"] if prev else None)
                 for k in range(b["knock"]): self.knocks.append(t + 0.25 + k * 0.36)
                 b["start"], b["dur"], b["clip"] = t, 0.5 + b["knock"] * 0.36 + 0.5, None
+            elif "silent" in b:  # no narration, fixed length (e.g. a cold-open tease)
+                b["start"], b["dur"], b["clip"] = t, b["silent"], None
             elif "ring" in b:  # phone ringing: n rings of ~1.2 s
                 b.setdefault("scene", prev["scene"] if prev else None)
                 for k in range(b["ring"]): self.rings.append(t + 0.2 + k * 1.3)
@@ -295,10 +297,11 @@ def render_frame(fi):
     if sc.get("flicker") or b.get("flicker"): light *= 0.78 + 0.22 * (rng.random() > 0.07)
     if b.get("flicker") == "hard": light *= 0.25 if rng.random() < 0.18 else 1.0
     light *= 1 - 0.3 * k
+    light *= b.get("light", 1.0)
     a = a * lk.vign * light + lk.grain[fi % len(lk.grain)]
     # cut dips
     for c0 in ep.cuts:
-        if 0 <= t - c0 < 0.12: a *= (t - c0) / 0.12
+        if c0 > 0 and 0 <= t - c0 < 0.12: a *= (t - c0) / 0.12
     if t > ep.dur - 0.5: a *= max(0, (ep.dur - t) / 0.5)
     frame = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA")
     card = b.get("card")
@@ -351,6 +354,12 @@ def draw_card(card, lt, u, ring=0.0):
         d.text((x0 + 290, y0 + 520), "?", font=font(FONT_BLACK, 110), fill=(200, 200, 210, al), anchor="mm")
         for cx, col in ((x0 + 140, RED), (x0 + 440, (40, 200, 90))):
             d.ellipse([cx - 70, y0 + 820, cx + 70, y0 + 960], fill=(*col, al))
+    elif card["type"] == "title":
+        f = font(FONT_BLACK, card.get("size", 150)); col = card.get("color", RED)
+        g = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(g).multiline_text((540, card.get("y", 1250)), card["text"], font=f, fill=(*col, 220), anchor="mm", align="center")
+        im.alpha_composite(g.filter(ImageFilter.GaussianBlur(20)))
+        d.multiline_text((540, card.get("y", 1250)), card["text"], font=f, fill=(255, 255, 255, 255), anchor="mm", align="center", stroke_width=9, stroke_fill=(0, 0, 0, 255))
     elif card["type"] == "display":
         d.rounded_rectangle([290, 640, 790, 960], 30, fill=(8, 6, 6, int(al * 0.92)), outline=(60, 60, 64, al), width=8)
         flick = 1.0 if (int(lt * 12) % 9) else 0.35

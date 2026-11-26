@@ -14,6 +14,8 @@ EPISODE = {
         "hall": {"bg": BG + "doppel_hall.png", "cam": {"zoom": (1.0, 1.2), "x": 0.68}},
     },
     "beats": [
+        {"scene": "doppel_bed", "silent": 1.3, "sting": True, "light": 1.9, "cam": {"zoom": (1.7, 2.1), "x": 0.29, "y": 0.34},
+         "card": {"type": "title", "text": "IT WAS YOU.", "size": 130, "y": 1420}},
         {"scene": "bedroom", "vo": "00", "text": "Imagine you *don't* open the closet. You don't touch the blanket. You *run*.",
          "char": {"x": (420, 820), "feet": 1660, "s": 1.65, "expr": "scared", "walk": 1.0}},
         {"scene": "frontdoor", "vo": "01", "text": "But the front door is *locked*... from the *outside*.",
