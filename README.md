@@ -25,4 +25,6 @@ Output: 1080x1920, 30 fps, H.264/AAC.
 - HUD: ● PART n/7 + location tag + live clock counting toward the event time.
 - 45–75 s per part; ends on a keyword choice card: question on top ("THE CLOSET, OR THE BLANKET?"), yellow + red keyword pills, then "FOLLOW FOR PART n+1 @handle". Viewers comment the keyword.
 - HUD right side: yellow label + countdown (before the event "NEXT KNOCK IN", after it a stakes timer like "IT LEAVES IN").
+- Colour grade: black / white / grey world with ONE accent colour (red-orange). Only the things we want the eye to follow keep colour: the hoodie, lights, the red carpet, the monster. Captions, HUD tags and the first choice pill use the same accent.
+- Every part opens with a 1-1.5 s cold open of its scariest frame (also used as the cover).
 - Always label as AI-generated when posting.

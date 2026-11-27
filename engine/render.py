@@ -271,6 +271,23 @@ EP = LOOK = None
 def knock_amt(t):
     return max([max(0.0, 1 - abs(t - k) / 0.14) for k in EP.knocks] + [0.0])
 
+def accent_grade(a):
+    """Black/white/grey world with one accent colour: only saturated, bright red-orange survives.
+    The eye follows the colour (the hoodie, the light under the door, the red carpet...)."""
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx = a.max(-1); mn = a.min(-1); c = mx - mn + 1e-6
+    hue = np.where(mx == r, ((g - b) / c) % 6, np.where(mx == g, (b - r) / c + 2, (r - g) / c + 4)) * 60
+    sat = c / (mx + 1e-6); val = mx / 255
+    in_hue = (hue < 42) | (hue > 338)
+    deep_red = (hue < 14) | (hue > 338)  # pure reds may be dark (monster hoodie, carpet); oranges must be bright (lights)
+    vmin = np.where(deep_red, 0.07, 0.30); smin = np.where(deep_red, 0.28, 0.38)
+    m = in_hue * np.clip((sat - smin) / 0.2, 0, 1) * np.clip((val - vmin) / 0.12, 0, 1)
+    out_boost = np.where(deep_red, 1.6, 1.08)[..., None]  # lift dark reds so they read
+    lum = 0.299 * r + 0.587 * g + 0.114 * b
+    lum = np.clip((lum - 110) * 1.18 + 110, 0, 255)  # crisper blacks/whites
+    out = lum[..., None] + m[..., None] * (np.clip(a * out_boost, 0, 255) - lum[..., None])
+    return out
+
 def render_frame(fi):
     t = fi / FPS; ep, lk = EP, LOOK
     b = ep.beat_at(t); u = (t - b["start"]) / b["dur"]
@@ -298,6 +315,8 @@ def render_frame(fi):
     if b.get("flicker") == "hard": light *= 0.25 if rng.random() < 0.18 else 1.0
     light *= 1 - 0.3 * k
     light *= b.get("light", 1.0)
+    if ep.spec.get("grade", "accent") == "accent":
+        a = accent_grade(a)
     a = a * lk.vign * light + lk.grain[fi % len(lk.grain)]
     # cut dips
     for c0 in ep.cuts:
@@ -438,6 +457,9 @@ def load(ep_path):
     spec_mod = importlib.util.spec_from_file_location("episode", ep_path)
     m = importlib.util.module_from_spec(spec_mod); spec_mod.loader.exec_module(m)
     EP = Episode(m.EPISODE, os.path.dirname(os.path.abspath(ep_path)))
+    if EP.spec.get("grade", "accent") == "accent":  # captions / HUD / pills follow the accent colour
+        global YELLOW
+        YELLOW = tuple(EP.spec.get("accent", (255, 72, 28)))
     LOOK = Look(EP)
     return EP
 

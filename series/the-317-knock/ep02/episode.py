@@ -5,6 +5,7 @@ EPISODE = {
     "clock_target": "03:18:20", "vo_dir": "vo",
     "countdown": {"label": "IT LEAVES IN", "start": 15 * 60 + 40},
     "handle": "@midnightstories2255",
+    "grade": "accent",
     "scenes": {
         "bedroom": {"bg": BG + "bedroom.png", "cam": {"zoom": (1.0, 1.15), "x": 0.55}},
         "frontdoor": {"bg": BG + "frontdoor.png", "cam": {"zoom": (1.05, 1.2), "x": 0.46}},

@@ -5,6 +5,7 @@ EPISODE = {
     "clock_target": "00:00:00", "vo_dir": "vo",
     "countdown": {"label": "OXYGEN", "percent": 92, "rate": 0.3},
     "handle": "@midnightstories2255",
+    "grade": "accent",
     "scenes": {
         "elevator": {"bg": BG + "elevator.png", "cam": {"zoom": (1.0, 1.12), "x": 0.5}, "flicker": True},
         "hatch": {"bg": BG + "hatch.png", "cam": {"zoom": (1.0, 1.3), "x": 0.45, "y": 0.35}, "flicker": True},
