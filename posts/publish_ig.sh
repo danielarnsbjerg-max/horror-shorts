@@ -8,3 +8,11 @@ C=$(curl -s -X POST "$G/$IG/media" --form-string media_type=REELS --form-string 
 for i in $(seq 1 40); do S=$(curl -s "$G/$C?fields=status_code" | python3 -c "import sys,json;print(json.load(sys.stdin).get('status_code'))"); [ "$S" = FINISHED ] && break; [ "$S" = ERROR ] && { echo "processing error"; exit 1; }; sleep 10; done
 M=$(curl -s -X POST "$G/$IG/media_publish" --form-string "creation_id=$C" | python3 -c "import sys,json;print(json.load(sys.stdin)['id'])")
 curl -s "$G/$M?fields=permalink"; echo
+# remember the media id so the next part can count votes on it
+python3 - "$SLUG" "$M" <<'PY'
+import json,sys,os
+p=os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])) if False else "posts","log.json")
+d=json.load(open(p)) if os.path.exists(p) else {}
+d[sys.argv[1]]=sys.argv[2]; json.dump(d,open(p,"w"),indent=1)
+PY
+git add posts/log.json && git -c user.name="Claude" -c user.email="noreply@anthropic.com" commit -qm "log: $SLUG" && git push -q || true
