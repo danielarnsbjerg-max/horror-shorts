@@ -1,0 +1,37 @@
+"""The Last Train - Part 2/7. No votes - you stay on."""
+BG = "../assets/bg/"
+EPISODE = {
+    "part": 2, "parts": 7, "tag": "STATION ???",
+    "clock_target": "01:29:00", "vo_dir": "vo",
+    "countdown": {"before": "NEXT STOP IN", "after": "DOORS CLOSE IN", "after_secs": 30},
+    "handle": "@midnightstories2255",
+    "grade": "accent",
+    "scenes": {
+        "face": {"bg": BG + "passenger_close.png", "cam": {"zoom": (1.0, 1.3), "x": 0.42, "y": 0.42}, "flicker": True},
+        "train": {"bg": BG + "train_empty.png", "cam": {"zoom": (1.0, 1.15), "x": 0.5}, "flicker": True},
+        "passengers": {"bg": BG + "passengers.png", "cam": {"zoom": (1.0, 1.2), "x": 0.5}, "flicker": True},
+        "window": {"bg": BG + "window.png", "cam": {"zoom": (1.0, 1.6), "x": (0.55, 0.62), "y": 0.5}},
+        "double": {"bg": BG + "platform_double.png", "cam": {"zoom": (1.0, 1.5), "x": 0.5, "y": 0.55}},
+    },
+    "beats": [
+        {"scene": "face", "silent": 1.3, "sting": True, "light": 1.6, "cam": {"zoom": (1.6, 1.9), "x": 0.36, "y": 0.4},
+         "card": {"type": "title", "text": "DON'T BLINK.", "size": 130, "y": 1420}},
+        {"scene": "train", "vo": "00", "text": "Imagine you *stay* in your seat... and the doors slide *shut*.",
+         "char": {"x": 540, "feet": 1700, "s": 1.7, "view": "back", "turn": 0.0}},
+        {"scene": "passengers", "vo": "01", "text": "Every head turns back to the front. *Slowly*.", "cam": {"zoom": (1.1, 1.35), "x": 0.5}},
+        {"scene": "window", "light": 1.4, "vo": "02", "text": "You look at the window... and your *reflection* is *gone*.", "heartbeat": True, "pad": 0.5},
+        {"scene": "window", "light": 1.4, "vo": "03", "text": "Every stop takes *something*. This one took your *reflection*."},
+        {"scene": "face", "vo": "04", "text": "Then the passenger next to you *leans* in.", "cam": {"zoom": (1.0, 1.4), "x": 0.4, "y": 0.42}},
+        {"scene": "face", "vo": "05", "text": "\"Next stop... it takes your *name*.\"", "whisper": True, "heartbeat": True, "pad": 0.8,
+         "cam": {"zoom": (1.5, 2.1), "x": 0.36, "y": 0.4}},
+        {"scene": "double", "knock": 2, "clock_hit": True},
+        {"scene": "double", "vo": "06", "text": "The train slows down. The doors open *again*.",
+         "char": {"x": 540, "feet": 1730, "s": 1.75, "view": "back", "turn": 0.0, "tremble": 0.2}},
+        {"scene": "double", "vo": "07", "text": "And on the platform... someone is *waving* at you.", "cam": {"zoom": (1.4, 2.0), "x": 0.5, "y": 0.5}},
+        {"scene": "double", "vo": "08", "text": "Someone wearing *your* *hoodie*.", "sting": True, "heartbeat": True, "pad": 0.8,
+         "cam": {"zoom": (2.2, 2.8), "x": 0.5, "y": 0.47}},
+        {"scene": "double", "vo": "09", "text": "So what do you do?", "choice": True, "hold": 2.8, "cam": {"zoom": (1.0, 1.08), "x": 0.5}},
+    ],
+    "choice": {"question": "FOLLOW IT,\nOR STAY ON?", "a": "FOLLOW", "b": "STAY", "a_at": 0.45, "b_at": 0.85},
+    "tail": 0.6,
+}

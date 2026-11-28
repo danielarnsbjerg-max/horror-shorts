@@ -1,0 +1,43 @@
+"""Babysitter Rules - Part 2/7. Audience said LOCK IT."""
+BG = "../assets/bg/"
+RULES = ["5. The kids never sleep with the light off.", "6. If we come home early, don't let us in.",
+         "7. Count the kids every hour. It's always two."]
+EPISODE = {
+    "part": 2, "parts": 7, "tag": "HOUSE RULES",
+    "clock_target": "00:17:00", "vo_dir": "vo",
+    "countdown": {"label": "PARENTS HOME IN", "start": 1 * 3600 + 57 * 60 + 9},
+    "handle": "@midnightstories2255",
+    "grade": "accent",
+    "scenes": {
+        "kids": {"bg": BG + "kids_two.png", "cam": {"zoom": (1.0, 1.25), "x": 0.5, "y": 0.42}},
+        "door": {"bg": BG + "basement_door.png", "cam": {"zoom": (1.0, 1.2), "x": 0.6}},
+        "doorlow": {"bg": BG + "basement_door.png", "cam": {"zoom": (1.3, 1.8), "x": 0.63, "y": 0.58}, "flicker": True},
+        "kitchen": {"bg": BG + "kitchen.png", "cam": {"zoom": (1.0, 1.12), "x": 0.42}},
+        "kidsroom": {"bg": BG + "kidsroom.png", "cam": {"zoom": (1.0, 1.3), "x": (0.45, 0.6)}},
+    },
+    "beats": [
+        {"scene": "kids", "silent": 1.3, "sting": True, "light": 1.9, "cam": {"zoom": (1.4, 1.7), "x": 0.66, "y": 0.33},
+         "card": {"type": "title", "text": "COUNT THEM.", "size": 130, "y": 1420}},
+        {"scene": "door", "vo": "00", "text": "Imagine you *lock* the basement door. Two turns of the *key*.",
+         "char": {"x": 560, "feet": 1690, "s": 1.75, "view": "back", "turn": 0.0, "arm": (0.0, 0.7)}},
+        {"scene": "door", "vo": "01", "text": "The giggling *stops*.", "pad": 0.7,
+         "char": {"x": 560, "feet": 1690, "s": 1.75, "view": "back", "turn": (0.0, 0.5), "tremble": 0.2}},
+        {"scene": "doorlow", "light": 1.6, "knock": 3, "clock_hit": True},
+        {"scene": "doorlow", "light": 1.6, "vo": "02", "text": "Then a small voice... right *behind* the door.", "heartbeat": True},
+        {"scene": "doorlow", "light": 1.6, "vo": "03", "text": "\"Please... it's *me*. Something put me *down* here.\"", "whisper": True, "pad": 0.8,
+         "cam": {"zoom": (1.8, 2.3), "x": 0.64, "y": 0.6}},
+        {"scene": "kitchen", "vo": "04", "text": "You check the list again. Rule *seven*.",
+         "card": {"type": "note", "lines": RULES, "show": (1, 3)}},
+        {"scene": "kitchen", "vo": "05", "text": "Count the kids every hour. It's *always* *two*.", "pad": 0.5,
+         "card": {"type": "note", "lines": RULES, "hl": 2}},
+        {"scene": "kidsroom", "vo": "06", "text": "You run upstairs and count. *One*... *two*.",
+         "char": {"x": 300, "feet": 1720, "s": 1.75, "view": "back", "turn": 0.0, "tremble": 0.4}},
+        {"scene": "kids", "vo": "07", "text": "Both beds are *full* again.", "sting": True, "heartbeat": True, "pad": 0.6,
+         "cam": {"zoom": (1.0, 1.15), "x": (0.36, 0.62), "y": 0.42}},
+        {"scene": "kids", "vo": "08", "text": "So who's in the *bed*... and who's behind the *door*?", "heartbeat": True,
+         "cam": {"zoom": (1.5, 2.0), "x": 0.62, "y": 0.36}},
+        {"scene": "doorlow", "light": 1.6, "vo": "09", "text": "So what do you do?", "choice": True, "hold": 2.8, "cam": {"zoom": (1.2, 1.3), "x": 0.62, "y": 0.55}},
+    ],
+    "choice": {"question": "OPEN THE DOOR,\nOR CHECK THE BEDS?", "a": "OPEN IT", "b": "BEDS", "a_at": 0.4, "b_at": 0.85},
+    "tail": 0.6,
+}
