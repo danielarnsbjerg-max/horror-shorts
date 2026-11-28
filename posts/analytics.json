@@ -6,7 +6,7 @@
   "url": "https://www.instagram.com/reel/DgJ5UjeBpqj/",
   "score": 54,
   "x_normal": 18.0,
-  "age_h": 63,
+  "age_h": 74,
   "verdict": "hit"
  },
  "the-last-train-part1": {
@@ -16,7 +16,7 @@
   "url": "https://www.instagram.com/reel/DgLP2rmJnP-/",
   "score": 1,
   "x_normal": 0.33,
-  "age_h": 50,
+  "age_h": 62,
   "verdict": "flop"
  },
  "babysitter-rules-part1": {
@@ -26,7 +26,7 @@
   "url": "https://www.instagram.com/reel/DgLV2BYhTAW/",
   "score": 45,
   "x_normal": 15.0,
-  "age_h": 49,
+  "age_h": 61,
   "verdict": "hit"
  },
  "the-317-knock-part2": {
@@ -36,17 +36,17 @@
   "url": "https://www.instagram.com/reel/DgN6iN7Couz/",
   "score": 3,
   "x_normal": 1.0,
-  "age_h": 25,
+  "age_h": 37,
   "verdict": "too_new"
  },
  "floor-13-and-a-half-part1": {
-  "likes": 1,
+  "likes": 3,
   "comments": 0,
   "posted": "2026-11-27T19:59:12+0000",
   "url": "https://www.instagram.com/reel/DgQfE1Zhp4B/",
-  "score": 1,
-  "x_normal": 0.33,
-  "age_h": 1,
+  "score": 3,
+  "x_normal": 1.0,
+  "age_h": 13,
   "verdict": "too_new"
  }
 }
